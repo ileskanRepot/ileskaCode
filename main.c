@@ -25,17 +25,21 @@ int strLen(char* str)
 int strToInt(char* str)
 {
 	int i = 0;
-	for (i = 0;str[i] != '\0';i++){
+	int num = 0;
+	for (i = 0;str[i];i++){
 		if (48 > str[i] ||  57 < str[i])
 		{
 			return 0;
 		}
 	}
-	for (int i; i > 0 ;i++)
+
+	for (int j = i-1; j >= 0 ;j--)
 	{
-		printf("'%c'",str[i]);
+		int exp = 1;
+		for (int k = 0; k < i-j-1;k++){exp *= 10;}
+		num += (str[j]-48)*exp;
 	}
-	return 0;
+	return num;
 }
 
 // get strings nTh word
@@ -46,7 +50,7 @@ char* nThWord(unsigned char *originalWord, int word)
 	int spaceCount = 0;
 	int count = 0;
 		
-	parsedWord = (char *)malloc(100);
+	parsedWord = (char *)malloc(100*sizeof(char));
 	
 	for (int i = 0;originalWord[i] != '\0';i++)
 	{
@@ -106,13 +110,13 @@ int main(int argc, char **argv)
 	fseek(fileR, 0, SEEK_END);
 	unsigned long length = ftell(fileR);
 	fseek(fileR, 0, SEEK_SET);
-	data = (unsigned char *)malloc(length);
+	data = (unsigned char *)malloc(length*sizeof(unsigned char ));
 	fread(data, 1, length, fileR);
 
 	char **intNames;
-	intNames = (char **)malloc(1);
+	intNames = (char **)malloc(sizeof(char *));
 	int *intValues;
-	intValues = (int *)malloc(1);
+	intValues = (int *)malloc(sizeof(int));
 	int intCount = 0;
 
 	unsigned long num = 0;
@@ -129,10 +133,10 @@ int main(int argc, char **argv)
 	// Put code to easily accessable format
 	// TODO FIX MALLOCCING
 	unsigned char **lines;
-	lines = (unsigned char **)malloc(num*10);
+	lines = (unsigned char **)malloc(num*10*sizeof(unsigned char *));
 	int pos = 0;
 	int lineCount = 0;
-	lines[lineCount] = (unsigned char *)malloc(1000);
+	lines[lineCount] = (unsigned char *)malloc(1000*sizeof(unsigned char));
 	for (unsigned long i = 0; i < length;i++)
 	{
 		pos++;
@@ -147,7 +151,7 @@ int main(int argc, char **argv)
 		 		lineCount++;
 			}
 			if (lineCount < num){
-				lines[lineCount] = (unsigned char *)malloc(1000);
+				lines[lineCount] = (unsigned char *)malloc(1000*sizeof(unsigned char));
 			}
 		}
 	}
@@ -166,33 +170,37 @@ int main(int argc, char **argv)
 				}
 				// Check if int has value. If not set it to zero
 				if (strEq(nThWord(lines[i],3),"\0")){
-					intNames = (char **)malloc(1);
-					intNames[intCount] = (char *)malloc(strLen(nThWord(lines[i],2)));
+					intNames = (char **)malloc(sizeof(char *));
+					intNames[intCount] = (char *)malloc(strLen(nThWord(lines[i],2))*sizeof(char));
 					intNames[intCount] = nThWord(lines[i],2);
+					intValues = malloc(sizeof(int)*15); // <- EI TOIMI
 					intValues[intCount] = 0;
-					printf("No value\n");
+
 				}
 				else
 				{
 					if (isNumber(nThWord(lines[i],3)))
 					{
-						intNames = (char **)malloc(1);
-						intNames[intCount] = (char *)malloc(strLen(nThWord(lines[i],2)));
+						intNames = (char **)malloc(sizeof(char *));
+						intNames[intCount] = (char *)malloc(strLen(nThWord(lines[i],2))*sizeof(char));
 						intNames[intCount] = nThWord(lines[i],2);
-						//intValues[intCount] = nThWord(lines[i],3);
-						printf("Numero\n");
+						printf("%d\n",strToInt(nThWord(lines[i],3)));
+						intValues = (int *)malloc(sizeof(int));
+						intValues[intCount] = strToInt(nThWord(lines[i],3));
 					}else{
 						fprintf(stderr,"\033[31mOn line %d Int \"%s\" must be null or Ingeres, not \"%s\"\033[0m\n",i+1,nThWord(lines[i],2),nThWord(lines[i],3));
 						return 1;
 					}
 				}
 				intCount++;
-				printf("name: '%s'\n",nThWord(lines[i],2));
 			}
 		}
-	}
 
-	printf("%c\n","Moi123"[1]);
+		// Print text
+		else if (strEq(nThWord(lines[i],0),"put")){
+			printf("PRINT");
+		}
+	}
 
 	printf("\n");
 
